@@ -1,6 +1,7 @@
 BSD 3-Clause License
 
-Copyright (c) 2018, React Community
+Copyright (c) 2021, Andrew Messier
+Forked from react-transition-group (https://github.com/reactjs/react-transition-group) Copyright (c) 2018-present, React Community
 Forked from React (https://github.com/facebook/react) Copyright 2013-present, Facebook, Inc.
 All rights reserved.
 

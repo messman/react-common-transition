@@ -1,0 +1,40 @@
+{
+	"compilerOptions": {
+		"module": "esnext",
+		"moduleResolution": "node",
+		"lib": [
+			"DOM",
+			"ES2019"
+		],
+		"target": "ES2017",
+		"sourceMap": true,
+		"declaration": true,
+		"declarationMap": true,
+		"incremental": true,
+		"allowJs": false,
+		"checkJs": false,
+		"alwaysStrict": true,
+		"strict": true,
+		"noImplicitReturns": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noFallthroughCasesInSwitch": true,
+		"noEmitOnError": true,
+		"preserveConstEnums": true,
+		"jsx": "react",
+		"outDir": "./dist",
+		"baseUrl": ".",
+		"paths": {
+			"@/*": [
+				"src/*"
+			]
+		},
+	},
+	"compileOnSave": false,
+	"exclude": [
+		"node_modules"
+	],
+	"include": [
+		"src/**/*"
+	]
+}
