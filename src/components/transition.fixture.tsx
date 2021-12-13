@@ -14,90 +14,96 @@ export default {
 		const [isNotEntering] = useValue('Is Not Entering', { defaultValue: false });
 		const [isNotExiting] = useValue('Is Not Exiting', { defaultValue: false });
 
+		const [status, setStatus] = React.useState('Ready');
 		const onEntering = React.useCallback(() => {
-			console.log('Entering...');
+			setStatus('Entering...');
+			console.log('Entering');
 		}, []);
 		const onEntered = React.useCallback(() => {
-			console.log('Entered!');
+			setStatus('Entered!');
+			console.log('Entered');
 		}, []);
 		const onExiting = React.useCallback(() => {
-			console.log('Exiting...');
+			setStatus('Exiting...');
+			console.log('Exiting');
 		}, []);
 		const onExited = React.useCallback(() => {
-			console.log('Exited!');
+			setStatus('Exited!');
+			console.log('Exited');
 		}, []);
 
 		return (
-			<Transition
-				isActive={isActive}
-				childRef={ref}
-				classPrefix={hasPrefix ? 'transition-' : undefined}
-				hasMountClasses={hasMountClasses}
-				isNotEntering={isNotEntering}
-				isNotExiting={isNotExiting}
-				onEntering={onEntering}
-				onEntered={onEntered}
-				onExiting={onExiting}
-				onExited={onExited}
-			>
-				<TestComponent ref={ref} />
-			</Transition>
+			<>
+				<p>
+					Status: {status}
+				</p>
+				<Transition
+					isActive={isActive}
+					childRef={ref}
+					classPrefix={hasPrefix ? 'transition-' : undefined}
+					hasMountClasses={hasMountClasses}
+					isNotEntering={isNotEntering}
+					isNotExiting={isNotExiting}
+					onEntering={onEntering}
+					onEntered={onEntered}
+					onExiting={onExiting}
+					onExited={onExited}
+					onTransitioning={undefined}
+				>
+					<TestComponent ref={ref} />
+				</Transition>
+			</>
 		);
 	})
 };
 
 const TestComponent = React.forwardRef<any>((_props, ref) => {
-
-	React.useLayoutEffect(() => {
-		console.log('Test - Layout Effect');
-	});
-
-	React.useEffect(() => {
-		console.log('Test - Effect');
-	});
-
 	return (
-		<TransitioningDiv ref={ref}>Hello!</TransitioningDiv>
+		<TransitioningDiv ref={ref}>Hello, World!</TransitioningDiv>
 	);
 });
 
 const TransitioningDiv = styled.div`
-	width: 400px;
-	height: 400px;
+	background-color: #fdfdfd;
+	border: 2px solid #888;
+	border-radius: 1rem;
+	width: 10rem;
+	height: 3rem;
 	padding: 1rem;
-	color: white;
+	color: #333;
 	font-weight: bold;
-	border: 1px solid white;
 
 	&.enter {
-		background-color: green;
+		opacity: 0;
+		transform: scale(0.9);
 	}
 	&.entering {
-		background-color: skyblue;
+		opacity: 1;
+		transform: translateX(0);
+  		transition: opacity .5s, transform .5s; // Comment to test default timeout failsafe
 	}
 	&.entered {
-		background-color: skyblue;
-		text-decoration: underline;
 	}
 	&.mount {
-		background-color: red;
+		color: orange;
+		opacity: 0;
+		transform: scale(0.5);
 	}
 	&.mounting {
-		background-color: orange;
+		opacity: 1;
+		transform: translateX(0);
+  		transition: opacity 1s, transform 1s; // Comment to test default timeout failsafe
 	}
 	&.mounted {
-		background-color: orange;
-		text-decoration: underline;
 	}
 	&.exit {
-		background-color: pink;
+		opacity: 1;
 	}
 	&.exiting {
-		background-color: purple;
+		opacity: 0;
+  		transform: scale(0.9);
+  		transition: opacity .3s, transform .3s; // Comment to test default timeout failsafe
 	}
 	&.exited {
-		background-color: purple;
 	}
-
-	transition: all 2s ease;
 `;
