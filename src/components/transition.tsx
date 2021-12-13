@@ -241,7 +241,6 @@ const defaultOnTransitioning: OnTransitioningCallback = (element, done) => {
 
 	function onTransitionEnd(event: TransitionEvent) {
 		if (element === event.target) {
-			console.log(event);
 			finish();
 		}
 	}
