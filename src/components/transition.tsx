@@ -22,6 +22,32 @@ export enum TransitionPhaseClass {
 	exited = 'exited',
 }
 
+export const defaultClassPrefix = 'rct-';
+
+function enumKeys<T>(enumObject: T): (keyof T)[] {
+	// Note: there are two isNaNs in this world. 
+	return Object.keys(enumObject).filter(k => isNaN(Number(k))) as (keyof T)[];
+}
+const transitionPhaseClassKeys = enumKeys(TransitionPhaseClass);
+
+export interface CreateClassSelectorsOptions {
+	/** If not provided, uses default. */
+	classPrefix?: string;
+	/** If not provided, `false`. */
+	useAmpersandPrefix?: true;
+}
+
+export function createClassSelectors(options?: CreateClassSelectorsOptions): Record<keyof typeof TransitionPhaseClass, string> {
+	const classPrefix = options?.classPrefix || defaultClassPrefix;
+	const useAmpersandPrefix = options?.useAmpersandPrefix || false;
+	const selectors = {} as Record<keyof typeof TransitionPhaseClass, string>;
+	transitionPhaseClassKeys.forEach((key) => {
+		// Something like '&.myPrefix-entering'
+		selectors[key] = `${useAmpersandPrefix ? '&' : ''}.${classPrefix || ''}${TransitionPhaseClass[key]}`;
+	});
+	return selectors;
+}
+
 /** A callback used during enter phases. Includes a boolean argument for whether the enter phase is a mounting phase. */
 export type TransitionEnterPhaseCallback = (isMount: boolean) => void;
 /** A callback used during non-enter phases. */
@@ -29,20 +55,21 @@ export type TransitionPhaseCallback = () => void;
 /** A callback used to determine when to move out of the 'entering' or 'exiting' phases. Should return a cleanup function. */
 export type OnTransitioningCallback = (element: HTMLElement, done: () => void) => (() => void);
 
+
 /** Props for the Transition component, based on the old react-transition-group props. */
 export interface TransitionProps {
 	/** Whether the child component should be shown. */
 	isActive: boolean;
-	/** A *required* ref to the child component that will be transitioning. Classes will be applied to this ref element. */
-	childRef: React.RefObject<any>;
-	/** Default: undefined. If provided, a prefix for all transition classes. */
-	classPrefix?: string;
-	/** Default: false. If true, 'mount' classes will be used *instead of* 'enter' classes. */
+	/** Default: {@link defaultClassPrefix}. A prefix for all transition classes. */
+	classPrefix?: string | null;
+	/** Default: false. If true, 'mount' classes will be used *instead of* 'enter' classes. Always false if {@link isAlwaysMounted} is true. */
 	hasMountClasses?: boolean;
+	/** Default: false. If true, the child is always mounted and thus {@link hasMountClasses} won't work. */
+	isAlwaysMounted?: boolean;
 	/** Default: false. Set to true if there are no enter transitions. If false, a listener will be added to wait on the "transitionend" event. */
-	isNotEntering?: boolean;
+	skipEntering?: boolean;
 	/** Default: false. Set to true if there are no exit transitions. If false, a listener will be added to wait on the "transitionend" event. */
-	isNotExiting?: boolean;
+	skipExiting?: boolean;
 	/** If provided, a callback to run when the component begins the 'entering' phase. Callback should be stabilized with `useCallback`. */
 	onEntering?: TransitionEnterPhaseCallback;
 	/** If provided, a callback to run when the component ends the 'entering' phase. Callback should be stabilized with `useCallback`. */
@@ -79,19 +106,23 @@ enum TransitionPhase {
  * A transition-tracking component based on `Transition` and `CSSTransition` from `react-transition-group`.
  * 
  * This component is different because: it uses hooks, and thus cannot use some of the DOM tricks from class-based components but is sexier; has fewer props
- * and leaner functionality (and makes more sense); requires a ref to the child; uses "transitionend" instead of any timeouts; uses different class names.
+ * and leaner functionality (and makes more sense); uses "transitionend" instead of any timeouts; uses different class names.
  * 
  * Gotchas: callback functions should be stabilized with `useCallback`, else they may disrupt the "transitionend" event listeners in the `useEffect`.
  * 
- * To use, flip the `isActive` prop. Ensure `childRef` is set. Use `hasMountClasses` to apply special classes on the first mount only.
+ * To use, flip the `isActive` prop. Use `hasMountClasses` to apply special classes on the first mount only.
  */
 export const Transition: React.FC<TransitionProps> = (props) => {
-	const { isActive, childRef, classPrefix, hasMountClasses, isNotEntering, isNotExiting, onEntering, onEntered, onExiting, onExited, onTransitioning, children } = props;
+	const { isActive, classPrefix: propClassPrefix, hasMountClasses, isAlwaysMounted, skipEntering, skipExiting, onEntering, onEntered, onExiting, onExited, onTransitioning, children } = props;
 
-	// Initial phase is set here. Either we're unmounted, or we are already mounted and "entered".
-	const [phase, setPhase] = React.useState(isActive ? TransitionPhase.mountAsEntered : TransitionPhase.unmounted);
+	// Class prefix is always a string... it just might be an empty string.
+	const classPrefix = propClassPrefix !== undefined ? (propClassPrefix || '') : defaultClassPrefix;
+
+	const childRef = React.useRef<any>();
+	// Initial phase is set here. We don't run mount transitions immediately. Either we're unmounted, existed, or already mounted and "entered".
+	const [phase, setPhase] = React.useState(isActive ? TransitionPhase.mountAsEntered : (isAlwaysMounted ? TransitionPhase.exited : TransitionPhase.unmounted));
 	// Track whether we've officially "mounted" and entered yet. We only want to apply the mounting classes the first time we enter, if at all.
-	const hasMountedOnceRef = React.useRef<boolean>(false);
+	const hasMountedOnceRef = React.useRef<boolean>(!!(isActive || isAlwaysMounted));
 
 	function preventFutureMountingClasses() {
 		// We are no longer possibly mounting because we entered once or started to exit.
@@ -121,7 +152,9 @@ export const Transition: React.FC<TransitionProps> = (props) => {
 		// If we shouldn't be active and we're 'exited', we can move to 'unmount'. This is the last step
 		// In the cleanup/unmounting workflow. The child component will not render.
 		if (!isActive && phase === TransitionPhase.exited) {
-			setPhase(TransitionPhase.unmounted);
+			if (!isAlwaysMounted) {
+				setPhase(TransitionPhase.unmounted);
+			}
 		}
 		else if (isActive && phase === TransitionPhase.mountAsEntered) {
 			// Special case for the very first render if we should be mounted and ready to go - just apply the 'entered' phase.
@@ -131,7 +164,7 @@ export const Transition: React.FC<TransitionProps> = (props) => {
 		else if (isActive && phase !== TransitionPhase.entering && phase !== TransitionPhase.entered) {
 			// If we should be active but aren't entering or entered, we must be waiting to kick off.
 			// If we shouldn't animate, go straight to entered - else, start entering.
-			if (isNotEntering) {
+			if (skipEntering) {
 				setToEntered(setPhase, childRef, classPrefix, canUseMountClasses, onEntered);
 				preventFutureMountingClasses();
 			}
@@ -147,7 +180,7 @@ export const Transition: React.FC<TransitionProps> = (props) => {
 		else if (!isActive && (phase === TransitionPhase.entering || phase === TransitionPhase.entered)) {
 			// The inverse of the above - if we should not be active but currently are entering or entered, we should start exiting.
 			// Though, if we shouldn't do the exiting animation, just go right to 'exited'.
-			if (isNotExiting) {
+			if (skipExiting) {
 				setToExited(setPhase, childRef, classPrefix, onExited);
 			}
 			else {
@@ -207,7 +240,7 @@ export const Transition: React.FC<TransitionProps> = (props) => {
 	}, [isEntering, isExiting, childRef, onTransitioning, canUseMountClasses, onEntered, onExited, classPrefix]);
 
 
-	return phase === TransitionPhase.unmounted ? null : <>{children}</>;
+	return phase === TransitionPhase.unmounted ? null : <>{childWithRef(children, childRef)}</>;
 };
 
 // After X seconds, say our transition is done. Covers any bugs.
@@ -281,21 +314,22 @@ function setClasses(ref: React.RefObject<any>, phase: TransitionPhase, classPref
 		return classPrefix ? `${classPrefix}${className}` : className;
 	}
 
+	// For safety, always remove everything.
+	transitionPhaseClassKeys.forEach((key) => {
+		element.classList.remove(p(key));
+	});
+
 	switch (phase) {
 		case TransitionPhase.unmounted:
 			// We shouldn't even get here.
 			break;
 		case TransitionPhase.entering:
-			// Remove exit classes; add either mount or enter; cause reflow to trigger styles; add more classes.
-			element.classList.remove(p('exit'), p('exiting'), p('exited'));
+			// Add either mount or enter; cause reflow to trigger styles; add more classes.
 			element.classList.add(hasMountClasses ? p('mount') : p('enter'));
 			element && element.scrollTop; // reflow
 			element.classList.add(hasMountClasses ? p('mounting') : p('entering'));
 			break;
 		case TransitionPhase.entered:
-			// Remove all enter classes just in case.
-			element.classList.remove(p('mount'), p('mounting'), p('mounted'));
-			element.classList.remove(p('enter'), p('entering'), p('entered'));
 			if (hasMountClasses) {
 				element.classList.add(p('mounted'));
 			}
@@ -303,17 +337,26 @@ function setClasses(ref: React.RefObject<any>, phase: TransitionPhase, classPref
 			element.classList.add(p('entered'));
 			break;
 		case TransitionPhase.exiting:
-			// Remove enter classes; add exit; cause reflow to trigger styles; add more classes.
-			element.classList.remove(p('mount'), p('mounting'), p('mounted'));
-			element.classList.remove(p('enter'), p('entering'), p('entered'));
+			// Add exit; cause reflow to trigger styles; add more classes.
 			element.classList.add(p('exit'));
 			element && element.scrollTop; // reflow
 			element.classList.add(p('exiting'));
 			break;
 		case TransitionPhase.exited:
 			// Apply the exited class.
-			element.classList.remove(p('exit'), p('exiting'));
 			element.classList.add(p('exited'));
 			break;
 	}
+}
+
+function childWithRef(children: React.ReactNode, ref: React.RefObject<any>): JSX.Element {
+	const firstChild = React.Children.toArray(children)[0];
+	if (!firstChild || !React.isValidElement(firstChild)) {
+		throw new Error('Transition child must be a valid react element');
+	}
+	const newChild = React.cloneElement(firstChild, {
+		...firstChild.props,
+		ref: ref
+	});
+	return <>{newChild}</>;
 }

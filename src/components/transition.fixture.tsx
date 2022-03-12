@@ -1,18 +1,17 @@
 import * as React from 'react';
 import { wrap } from '@/test/decorate';
-import { Transition } from './transition';
+import { createClassSelectors, Transition } from './transition';
 import { useValue } from 'react-cosmos/fixture';
 import { styled } from '@/test/styled';
 
 export default {
 	'Base': wrap(() => {
 
-		const ref = React.useRef();
 		const [isActive] = useValue('Is Active', { defaultValue: false });
-		const [hasPrefix] = useValue('Has Class Prefix', { defaultValue: false });
 		const [hasMountClasses] = useValue('Has Mount Classes', { defaultValue: false });
-		const [isNotEntering] = useValue('Is Not Entering', { defaultValue: false });
-		const [isNotExiting] = useValue('Is Not Exiting', { defaultValue: false });
+		const [skipEntering] = useValue('Skip Entering', { defaultValue: false });
+		const [skipExiting] = useValue('Skip Exiting', { defaultValue: false });
+		const [isAlwaysMounted] = useValue('Is Always Mounted', { defaultValue: false });
 
 		const [status, setStatus] = React.useState('Ready');
 		const onEntering = React.useCallback(() => {
@@ -39,29 +38,35 @@ export default {
 				</p>
 				<Transition
 					isActive={isActive}
-					childRef={ref}
-					classPrefix={hasPrefix ? 'transition-' : undefined}
 					hasMountClasses={hasMountClasses}
-					isNotEntering={isNotEntering}
-					isNotExiting={isNotExiting}
+					isAlwaysMounted={isAlwaysMounted}
+					skipEntering={skipEntering}
+					skipExiting={skipExiting}
 					onEntering={onEntering}
 					onEntered={onEntered}
 					onExiting={onExiting}
 					onExited={onExited}
 					onTransitioning={undefined}
 				>
-					<TestComponent ref={ref} />
+					<TestComponent testString={'Testing'} />
 				</Transition>
 			</>
 		);
 	})
 };
 
-const TestComponent = React.forwardRef<any>((_props, ref) => {
+interface TestComponentProps {
+	testString: string;
+}
+
+const TestComponent = React.forwardRef<any, TestComponentProps>((props, ref) => {
 	return (
-		<TransitioningDiv ref={ref}>Hello, World!</TransitioningDiv>
+		<TransitioningDiv ref={ref}>Hello, World! ({props.testString})</TransitioningDiv>
 	);
 });
+
+const TransitionSelectors = createClassSelectors({ useAmpersandPrefix: true });
+console.log(TransitionSelectors);
 
 const TransitioningDiv = styled.div`
 	background-color: #fdfdfd;
@@ -73,37 +78,40 @@ const TransitioningDiv = styled.div`
 	color: #333;
 	font-weight: bold;
 
-	&.enter {
+	${TransitionSelectors.enter} {
 		opacity: 0;
 		transform: scale(0.9);
 	}
-	&.entering {
+	${TransitionSelectors.entering} {
 		opacity: 1;
 		transform: translateX(0);
   		transition: opacity .5s, transform .5s; // Comment to test default timeout failsafe
 	}
-	&.entered {
+	${TransitionSelectors.entered} {
 	}
-	&.mount {
+	${TransitionSelectors.mount} {
 		color: orange;
 		opacity: 0;
 		transform: scale(0.5);
 	}
-	&.mounting {
+	${TransitionSelectors.mounting} {
 		opacity: 1;
 		transform: translateX(0);
   		transition: opacity 1s, transform 1s; // Comment to test default timeout failsafe
 	}
-	&.mounted {
+	${TransitionSelectors.mounted} {
 	}
-	&.exit {
+	${TransitionSelectors.exit} {
 		opacity: 1;
 	}
-	&.exiting {
+	${TransitionSelectors.exiting} {
 		opacity: 0;
   		transform: scale(0.9);
   		transition: opacity .3s, transform .3s; // Comment to test default timeout failsafe
 	}
-	&.exited {
+	${TransitionSelectors.exited} {
+		opacity: .1;
+		transform: scale(0.9);
+		color: red;
 	}
 `;

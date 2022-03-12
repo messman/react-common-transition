@@ -31,26 +31,26 @@
 		"styled-components": "^5.2.1"
 	},
 	"dependencies": {
-		"@babel/runtime": "^7.5.5",
+		"@babel/runtime": "^7.17.2",
 		"dom-helpers": "^5.0.1",
 		"loose-envify": "^1.4.0",
-		"prop-types": "^15.6.2"
+		"prop-types": "^15.8.1"
 	},
 	"devDependencies": {
-		"@babel/core": "^7.16.0",
-		"@babel/preset-env": "^7.16.4",
-		"@babel/preset-react": "^7.16.0",
+		"@babel/core": "^7.17.5",
+		"@babel/preset-env": "^7.16.11",
+		"@babel/preset-react": "^7.16.7",
 		"@messman/ts-webpack-builder": "^2.2.0",
-		"@types/react": "^17.0.37",
-		"@types/react-dom": "^17.0.11",
-		"@types/styled-components": "^5.1.17",
+		"@types/react": "^17.0.40",
+		"@types/react-dom": "^17.0.13",
+		"@types/styled-components": "^5.1.24",
 		"babel-loader": "^8.2.3",
 		"html-webpack-plugin": "^5.5.0",
 		"react": "^17.0.2",
-		"react-cosmos": "^5.6.5",
+		"react-cosmos": "^5.7.2",
 		"react-dom": "^17.0.2",
 		"styled-components": "^5.3.3",
-		"typescript": "^4.5.2",
+		"typescript": "^4.6.2",
 		"typescript-plugin-styled-components": "^2.0.0"
 	}
 }
