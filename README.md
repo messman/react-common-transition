@@ -1,12 +1,21 @@
 # react-common-transition
 
-_**Not stable. Not recommended for use by anyone other than the creator. I will likely not respond to feature requests.**_
+_**Not recommended for use by anyone other than the creator. Feel free to fork.**_
 
 `npm install --save @messman/react-common-transition`
 
 View on [npm](https://www.npmjs.com/package/@messman/react-common-transition) or on [GitHub](https://github.com/messman/react-common-transition).
 
 Common transition tools for React. As noted below, this is a fork of `react-transition-group`.
+
+## History
+
+### v6.0.0
+- Removed the need for a `ref` to be created outside and passed to the component and its child. That's now handled internally with the magic of `cloneElement`.
+- Renamed `isNotEntering` to `skipEntering` and `isNotExiting` to `skipExiting`.
+- Added a property `isAlwaysMounted` (false by default) to ensure the child is always mounted.
+- Added a helper function for getting the class selectors for use in `styled-components`.
+- Added a default for `classPrefix` to make it less likely that a prefix needs to be added in consuming projects.
 
 ## react-transition-group
 
