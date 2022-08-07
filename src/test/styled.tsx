@@ -10,6 +10,6 @@ export const css = baseCss as ThemedCssFunction<Theme>;
 export type ThemedCSS = FlattenInterpolation<ThemeProps<Theme>>;
 
 export interface ClassNameProps {
-	className?: string
+	className?: string;
 }
 export type StyledFC<P> = React.FC<P & ClassNameProps>;

@@ -13,7 +13,7 @@ export function wrap(Component: React.FC): React.FC {
 	};
 }
 
-export const TestWrapper: React.FC = (props) => {
+export const TestWrapper: React.FC<React.PropsWithChildren> = (props) => {
 
 	return (
 		<ThemeProvider theme={lightTheme}>

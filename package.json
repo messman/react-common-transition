@@ -26,8 +26,8 @@
 	},
 	"homepage": "https://github.com/messman/react-common-transition#readme",
 	"peerDependencies": {
-		"react": "^17.0.1",
-		"react-dom": "^17.0.1",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
 		"styled-components": "^5.2.1"
 	},
 	"dependencies": {
@@ -41,14 +41,14 @@
 		"@babel/preset-env": "^7.16.11",
 		"@babel/preset-react": "^7.16.7",
 		"@messman/ts-webpack-builder": "^2.2.0",
-		"@types/react": "^17.0.40",
-		"@types/react-dom": "^17.0.13",
+		"@types/react": "^18.0.16",
+		"@types/react-dom": "^18.0.6",
 		"@types/styled-components": "^5.1.24",
 		"babel-loader": "^8.2.3",
 		"html-webpack-plugin": "^5.5.0",
-		"react": "^17.0.2",
+		"react": "^18.2.0",
 		"react-cosmos": "^5.7.2",
-		"react-dom": "^17.0.2",
+		"react-dom": "^18.2.0",
 		"styled-components": "^5.3.3",
 		"typescript": "^4.6.2",
 		"typescript-plugin-styled-components": "^2.0.0"

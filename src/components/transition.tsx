@@ -89,6 +89,7 @@ export interface TransitionProps {
 	 * NOTE: be cautious of memory leaks with this function. With great power comes great responsibility. This function should be stabilized with `useCallback`.
 	 */
 	onTransitioning?: OnTransitioningCallback;
+	children?: React.ReactNode;
 }
 
 /** Internal phase states. */
