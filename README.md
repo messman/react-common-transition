@@ -10,6 +10,10 @@ Common transition tools for React. As noted below, this is a fork of `react-tran
 
 ## History
 
+### v6.1.0
+- Update dependencies
+- Update to React 18
+
 ### v6.0.0
 - Removed the need for a `ref` to be created outside and passed to the component and its child. That's now handled internally with the magic of `cloneElement`.
 - Renamed `isNotEntering` to `skipEntering` and `isNotExiting` to `skipExiting`.
