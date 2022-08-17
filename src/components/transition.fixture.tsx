@@ -8,10 +8,9 @@ export default {
 	'Base': wrap(() => {
 
 		const [isActive] = useValue('Is Active', { defaultValue: false });
-		const [hasMountClasses] = useValue('Has Mount Classes', { defaultValue: false });
 		const [skipEntering] = useValue('Skip Entering', { defaultValue: false });
 		const [skipExiting] = useValue('Skip Exiting', { defaultValue: false });
-		const [isAlwaysMounted] = useValue('Is Always Mounted', { defaultValue: false });
+		const [renderWhileExited] = useValue('Render While Exited', { defaultValue: false });
 
 		const [status, setStatus] = React.useState('Ready');
 		const onEntering = React.useCallback(() => {
@@ -38,8 +37,7 @@ export default {
 				</p>
 				<Transition
 					isActive={isActive}
-					hasMountClasses={hasMountClasses}
-					isAlwaysMounted={isAlwaysMounted}
+					renderWhileExited={renderWhileExited}
 					skipEntering={skipEntering}
 					skipExiting={skipExiting}
 					onEntering={onEntering}
@@ -66,7 +64,6 @@ const TestComponent = React.forwardRef<any, TestComponentProps>((props, ref) => 
 });
 
 const TransitionSelectors = createClassSelectors({ useAmpersandPrefix: true });
-console.log(TransitionSelectors);
 
 const TransitioningDiv = styled.div`
 	background-color: #fdfdfd;
@@ -88,18 +85,6 @@ const TransitioningDiv = styled.div`
   		transition: opacity .5s, transform .5s; // Comment to test default timeout failsafe
 	}
 	${TransitionSelectors.entered} {
-	}
-	${TransitionSelectors.mount} {
-		color: orange;
-		opacity: 0;
-		transform: scale(0.5);
-	}
-	${TransitionSelectors.mounting} {
-		opacity: 1;
-		transform: translateX(0);
-  		transition: opacity 1s, transform 1s; // Comment to test default timeout failsafe
-	}
-	${TransitionSelectors.mounted} {
 	}
 	${TransitionSelectors.exit} {
 		opacity: 1;
