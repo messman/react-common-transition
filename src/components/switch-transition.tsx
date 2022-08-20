@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Transition, TransitionPhaseCallback } from './transition';
+import { OnTransitioningCallback, Transition, TransitionPhaseCallback, TransitionProps } from './transition';
 
 export enum SwitchTransitionTiming {
 	exitFirst = 1,
@@ -7,10 +7,8 @@ export enum SwitchTransitionTiming {
 	same
 }
 
-//type SwitchTransitionInnerProps = Omit<TransitionProps, 'children'>;
-
 /** Props for the SwitchTransition component. */
-export interface SwitchTransitionProps {
+export interface SwitchTransitionProps extends Pick<TransitionProps, /* Cannot do renderWhileExited. */ 'classPrefix' | 'onEntering' | 'onEntered' | 'onExiting' | 'onExited'> {
 	/**
 	 * Required. A key used to differentiate between children.
 	 * If the key changes, the transition occurs.
@@ -18,9 +16,9 @@ export interface SwitchTransitionProps {
 	transitionKey: React.Key;
 	/**
 	 * The single required child.
-	 * Transitions occur not when the child changes, but when {@link transitionKey} changes.
+	 * Transitions occur not when the child changes, but when the key changes.
 	*/
-	children: React.ReactNode;
+	children?: React.ReactNode;
 	/**
 	 * If provided, the element to be transitioned out instead of the old cached child.
 	 * Useful if, for example, the cached child would otherwise throw an error due to contextual state change.
@@ -30,6 +28,14 @@ export interface SwitchTransitionProps {
 	 * Default: the old child and new child transition at the same time. If provided, transitions will occur at a different point.
 	 */
 	timing?: SwitchTransitionTiming;
+	/**
+	 * See {@link TransitionProps.onTransitioning}.
+	*/
+	inOnTransitioning?: OnTransitioningCallback;
+	/**
+	 * See {@link TransitionProps.onTransitioning}.
+	*/
+	outOnTransitioning?: OnTransitioningCallback;
 }
 
 interface State {
@@ -46,7 +52,19 @@ interface State {
 export const SwitchTransition: React.FC<SwitchTransitionProps> = (props) => {
 	// Treat our props as "what is next", because we immediately queue up another render when they change.
 	// In this way, it's like we're looking into the future.
-	const { transitionKey: thisRenderKey, children: thisRenderChildren, outRender: propsOutRender, timing } = props;
+	const {
+		transitionKey: thisRenderKey,
+		children: thisRenderChildren,
+		outRender: propsOutRender,
+		timing,
+		classPrefix,
+		inOnTransitioning,
+		outOnTransitioning,
+		onEntered,
+		onEntering,
+		onExited,
+		onExiting
+	} = props;
 	const thisRenderChild = firstChild(thisRenderChildren);
 
 	const [state, setState] = React.useState<State>(() => {
@@ -115,24 +133,18 @@ export const SwitchTransition: React.FC<SwitchTransitionProps> = (props) => {
 	*/
 	const isRightBeforeTransition = thisRenderKey !== inKey;
 	const isTransitioning = inKey !== outKey;
-	const isStable = !isRightBeforeTransition && !isTransitioning;
 
 	/*
 		We hold on to the child so that when a new one comes along we can use the
 		stored child as the out render.
 	*/
-	const outChildRef = React.useRef<React.ReactNode>(null!);
-	if (!outChildRef.current || isStable) {
-		outChildRef.current = thisRenderChild;
+	const previousChildRef = React.useRef<React.ReactNode>(thisRenderChild);
+	const outChildRef = React.useRef<React.ReactNode>(thisRenderChild);
+	if (isRightBeforeTransition) {
+		outChildRef.current = clone(previousChildRef.current);
 	}
-	else if (isRightBeforeTransition) {
-		outChildRef.current = clone(outChildRef.current);
-	}
+	previousChildRef.current = thisRenderChild;
 	const outChild = outChildRef.current;
-
-	if (!thisRenderChild) {
-		return null;
-	}
 
 	let inRenderKey = inKey;
 	const inRender = thisRenderChild;
@@ -181,25 +193,50 @@ export const SwitchTransition: React.FC<SwitchTransitionProps> = (props) => {
 		}
 	}
 
+	function wrappedInOnEntered() {
+		if (inOnEnteredFunc) {
+			inOnEnteredFunc();
+		}
+		if (onEntered) {
+			onEntered();
+		}
+	}
+	function wrappedOutOnExited() {
+		if (outOnExitedFunc) {
+			outOnExitedFunc();
+		}
+		if (onExited) {
+			onExited();
+		}
+	}
+
 	return (
 		<>
 			<Transition
 				key={inRenderKey}
 				isActive={isInTransitionActive}
+				classPrefix={classPrefix}
 				skipEntering={isInSkipEntering}
 				skipExiting={true}
-				onEntered={inOnEnteredFunc}
+				onEntering={onEntering}
+				onEntered={wrappedInOnEntered}
 				onExited={undefined}
+				onExiting={undefined}
+				onTransitioning={inOnTransitioning}
 			>
 				{inRender}
 			</Transition>
 			<Transition
 				key={outRenderKey}
 				isActive={isOutTransitionActive}
+				classPrefix={classPrefix}
 				skipEntering={true}
 				skipExiting={isOutSkipExiting}
+				onExiting={onExiting}
+				onExited={wrappedOutOnExited}
 				onEntered={undefined}
-				onExited={outOnExitedFunc}
+				onEntering={undefined}
+				onTransitioning={outOnTransitioning}
 			>
 				{outRender}
 			</Transition>

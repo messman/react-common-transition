@@ -1,1 +1,20 @@
-export { Transition, TransitionProps, TransitionPhaseClass, TransitionPhaseCallback, CreateClassSelectorsOptions, createClassSelectors, defaultClassPrefix, setDefaultSafetyTimeout, OnTransitioningCallback } from './components/transition';
+export {
+	Transition,
+	TransitionProps,
+	TransitionPhaseClass,
+	TransitionPhaseCallback,
+	CreateClassSelectorsOptions,
+	createClassSelectors,
+	defaultClassPrefix,
+	CreateTransitionCallbackInput,
+	createTransitionCallback,
+	defaultCreateTransitionCallbackInput,
+	OnTransitioningCallback,
+	OnEndContext
+} from './components/transition';
+
+export {
+	SwitchTransition,
+	SwitchTransitionProps,
+	SwitchTransitionTiming,
+} from './components/switch-transition';
