@@ -10,6 +10,14 @@ Common transition tools for React. As noted below, this is a fork of `react-tran
 
 ## History
 
+### v7.0.0
+- Updated dependencies
+- Added the `SwitchTransition` component for transitioning out old content without explicitly holding it in state
+- Added helper function `createTransitionCallback` and related types for greater control over detecting the end of transitions
+- Added default support for tracking CSS Animations
+- Breaking change: updated the class names applied during transition phases to improve clarity
+	- Removed `enter` and `exit`; use `enter-start` and `exit-start` for before the reflow, or use `active` and `inactive`.
+
 ### v6.1.0
 - Update dependencies
 - Update to React 18

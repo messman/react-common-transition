@@ -22,10 +22,10 @@ export enum TransitionPhaseClass {
 	/** A shortcut for {@link entering} or {@link exiting} */
 	transitioning = 'transitioning',
 
-	/** A shortcut for {@link entering} or {@link entered} */
+	/** A shortcut for {@link entering} or {@link entered} or {@link exitStart} */
 	active = 'active',
 
-	/** A shortcut for {@link exiting} or {@link exited} */
+	/** A shortcut for {@link exiting} or {@link exited} or {@link enterStart} */
 	inactive = 'inactive',
 }
 
