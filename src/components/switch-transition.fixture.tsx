@@ -3,6 +3,7 @@ import TextFadePart from './switch-transition.fixture-text-fade';
 import PanelSlidePart from './switch-transition.fixture-panel-slide';
 import MultiStagePart from './switch-transition.fixture-multi-stage';
 import PanelSwapPart from './switch-transition.fixture-panel-swap';
+import PanelUpdatePart from './switch-transition.fixture-panel-update';
 import EnterFirstPart from './switch-transition.fixture-enter-first';
 import ExitFirstPart from './switch-transition.fixture-exit-first';
 
@@ -13,5 +14,6 @@ export default {
 	'Multi Stage': MultiStagePart,
 	'Panel Slide': PanelSlidePart,
 	'Panel Swap': PanelSwapPart,
+	'Panel Update': PanelUpdatePart,
 	'Text Fade': TextFadePart,
 };
