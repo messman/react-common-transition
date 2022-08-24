@@ -7,16 +7,34 @@ export enum SwitchTransitionTiming {
 	same
 }
 
+function makeKey(key: string): string {
+	return `_key_switch_${key}_key_switch_`;
+}
+
+const keyTrue = makeKey('boolean_true');
+const keyFalse = makeKey('boolean_false');
+const keyNull = makeKey('null');
+const keyDefaultStart = makeKey('start');
+const keyNone = makeKey('none');
+
+/** `undefined` is treated as "use the previous key" and does not run the transition. */
+export type SwitchTransitionKey = string | number | boolean | null | undefined;
+
 /** Props for the SwitchTransition component. */
 export interface SwitchTransitionProps extends Pick<TransitionProps, /* Cannot do renderWhileExited. */ 'classPrefix' | 'onEntering' | 'onEntered' | 'onExiting' | 'onExited'> {
 	/**
 	 * Required. A key used to differentiate between children.
-	 * If the key changes, the transition occurs.
+	 * 
+	 * If the same key or `undefined` is passed between renders, transitions do not occur. See also {@link skipTransitioning}.
+	 * 
+	 * If `null` is passed, the previous render is transitioned out and transitions are skipped until the key next changes.
+	 * When the key next changes, the previous render is not transitioned out.
 	*/
-	transitionKey: React.Key;
+	transitionKey: SwitchTransitionKey;
 	/**
 	 * The single required child.
 	 * Transitions occur not when the child changes, but when the key changes.
+	 * Falsy values are undefined behavior. Only the first child is rendered.
 	*/
 	children?: React.ReactNode;
 	/**
@@ -28,6 +46,10 @@ export interface SwitchTransitionProps extends Pick<TransitionProps, /* Cannot d
 	 * Default: the old child and new child transition at the same time. If provided, transitions will occur at a different point.
 	 */
 	timing?: SwitchTransitionTiming;
+	/**
+	 * Default: false. If true, transitions will not occur, similar to passing the same key or `undefined` as the key.
+	*/
+	skipTransitioning?: boolean;
 	/**
 	 * See {@link TransitionProps.onTransitioning}.
 	*/
@@ -53,11 +75,12 @@ export const SwitchTransition: React.FC<SwitchTransitionProps> = (props) => {
 	// Treat our props as "what is next", because we immediately queue up another render when they change.
 	// In this way, it's like we're looking into the future.
 	const {
-		transitionKey: thisRenderKey,
+		transitionKey: thisRenderKeyAny,
 		children: thisRenderChildren,
 		outRender: propsOutRender,
 		timing,
 		classPrefix,
+		skipTransitioning,
 		inOnTransitioning,
 		outOnTransitioning,
 		onEntered,
@@ -67,26 +90,52 @@ export const SwitchTransition: React.FC<SwitchTransitionProps> = (props) => {
 	} = props;
 	const thisRenderChild = firstChild(thisRenderChildren);
 
+	// Convert other native types to a string key, with the exception of undefined.
+	const thisRenderKeyUndefined = React.useMemo(() => {
+		if (thisRenderKeyAny === undefined) {
+			return undefined;
+		}
+		else if (thisRenderKeyAny === null) {
+			return keyNull;
+		}
+		else if (thisRenderKeyAny === true) {
+			return keyTrue;
+		}
+		else if (thisRenderKeyAny === false) {
+			return keyFalse;
+		}
+		return thisRenderKeyAny;
+	}, [thisRenderKeyAny]);
+
 	const [state, setState] = React.useState<State>(() => {
+		// Use the first key, or a start key if the key is undefined.
+		const startKey = thisRenderKeyUndefined === undefined ? keyDefaultStart : thisRenderKeyUndefined;
 		return {
-			inKey: thisRenderKey,
-			outKey: thisRenderKey,
+			inKey: startKey,
+			outKey: startKey,
 			isFirstTimingPhaseComplete: true,
 		};
 	});
 	const { inKey, outKey, isFirstTimingPhaseComplete } = state;
 
+	// If the render key is undefined, use the last *saved* key (which is the inKey).
+	// This is the crux of the logic and essentially stops the transitions.
+	const thisRenderKey = thisRenderKeyUndefined === undefined ? inKey : thisRenderKeyUndefined;
+
 	React.useEffect(() => {
 		// If we see in the future that we're going to transition,
 		// update our saved keys.
-		if (thisRenderKey !== inKey) {
-			setState({
+		setState((p) => {
+			if (thisRenderKey === inKey) {
+				return p;
+			}
+			return {
 				inKey: thisRenderKey,
 				outKey: inKey,
 				isFirstTimingPhaseComplete: false
-			});
-		}
-	}, [thisRenderKey, inKey]);
+			};
+		});
+	}, [thisRenderKey]);
 
 	const onFinishedSwitch = React.useCallback(() => {
 		setState((p) => {
@@ -137,23 +186,34 @@ export const SwitchTransition: React.FC<SwitchTransitionProps> = (props) => {
 	/*
 		We hold on to the child so that when a new one comes along we can use the
 		stored child as the out render.
+
+		With this pattern, new children that come in under the same key are always shown,
+		and when it comes time to make the out render we know it will be up to date.
 	*/
 	const previousChildRef = React.useRef<React.ReactNode>(thisRenderChild);
 	const outChildRef = React.useRef<React.ReactNode>(thisRenderChild);
 	if (isRightBeforeTransition) {
+		/*
+			At this point, the previousChildRef holds the last render.
+			Clone it, and make it the new out render.
+		*/
 		outChildRef.current = clone(previousChildRef.current);
 	}
 	previousChildRef.current = thisRenderChild;
 	const outChild = outChildRef.current;
 
-	let inRenderKey = inKey;
+	/*
+		If these are falsy, it's undefined behavior; assume valid children are passed.
+	*/
 	const inRender = thisRenderChild;
+	const outRender = propsOutRender || outChild;
+
+	let inRenderKey = inKey;
 	let isInTransitionActive = true;
 	let isInSkipEntering = true;
 	let inOnEnteredFunc: TransitionPhaseCallback | undefined = undefined;
 
-	let outRenderKey: React.Key = '_out_none_';
-	let outRender = null;
+	let outRenderKey: React.Key = keyNone;
 	let isOutTransitionActive = false;
 	let isOutSkipExiting = true;
 	let outOnExitedFunc: TransitionPhaseCallback | undefined = undefined;
@@ -161,9 +221,8 @@ export const SwitchTransition: React.FC<SwitchTransitionProps> = (props) => {
 	if (isRightBeforeTransition || isTransitioning) {
 		inRenderKey = isRightBeforeTransition ? thisRenderKey : inKey;
 		outRenderKey = isRightBeforeTransition ? inKey : outKey;
-		outRender = propsOutRender || outChild;
-		isInSkipEntering = false;
-		isOutSkipExiting = false;
+		isInSkipEntering = !!skipTransitioning || (inRenderKey === keyNull);
+		isOutSkipExiting = !!skipTransitioning || (outRenderKey === keyNull);
 
 		/*
 			"In" will start inactive and then become active to run transition
@@ -245,7 +304,7 @@ export const SwitchTransition: React.FC<SwitchTransitionProps> = (props) => {
 };
 
 function firstChild(children: React.ReactNode): React.ReactNode {
-	return React.Children.toArray(children)[0];
+	return React.Children.toArray(children)[0] || null;
 }
 
 function clone(child: React.ReactNode): React.ReactNode {

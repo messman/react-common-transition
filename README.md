@@ -10,6 +10,13 @@ Common transition tools for React. As noted below, this is a fork of `react-tran
 
 ## History
 
+### v7.1.0
+- Added the `skipTransitioning` boolean property to the `SwitchTransition` component to skip transitions.
+- Updated the `transitionKey` property of `SwitchTransition` to allow boolean values, `null`, and `undefined`.
+	- `undefined` acts as "use last key" and skips transitions.
+	- `null` also skips transitions, but only the transitions related to renders from when `null` was the key.
+	- `true` and `false` are translated to unique string keys.
+
 ### v7.0.0
 - Updated dependencies
 - Added the `SwitchTransition` component for transitioning out old content without explicitly holding it in state

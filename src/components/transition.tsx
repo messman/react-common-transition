@@ -1,5 +1,5 @@
-import { enumKeys } from '@/utility';
 import * as React from 'react';
+import { enumKeys } from '@/utility';
 
 /**
  * The class names used. Prefixes may be required.
@@ -94,7 +94,10 @@ export interface TransitionProps {
 	 * NOTE: be cautious of memory leaks with this function. With great power comes great responsibility. This function should be stabilized with `useCallback`.
 	 */
 	onTransitioning?: OnTransitioningCallback;
-	/** The single required child. */
+	/**
+	 * The single required child. Only the first child is rendered.
+	 * Falsy values are undefined behavior.
+	*/
 	children?: React.ReactNode;
 }
 

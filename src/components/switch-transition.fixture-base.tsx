@@ -1,11 +1,11 @@
 import * as React from 'react';
+import { useSelect, useValue } from 'react-cosmos/fixture';
 import { useTestButtons, wrap } from '@/test/decorate';
-import { createClassSelectors } from './transition';
 import { styled } from '@/test/styled';
+import { createMountCounter, useEventStatus } from '@/test/test-utility';
 import { enumKeys } from '@/utility';
 import { SwitchTransition, SwitchTransitionTiming } from './switch-transition';
-import { useSelect } from 'react-cosmos/fixture';
-import { createMountCounter, useEventStatus } from '@/test/test-utility';
+import { createClassSelectors } from './transition';
 
 enum Color {
 	blue = 1,
@@ -16,6 +16,8 @@ enum Color {
 const timingsOptions = enumKeys(SwitchTransitionTiming);
 
 export default wrap(() => {
+
+	const [skipTransitioning] = useValue('Skip Transitioning', { defaultValue: false });
 
 	const [timingKey] = useSelect('Timing', { options: timingsOptions, defaultValue: SwitchTransitionTiming[SwitchTransitionTiming.same] });
 	const timing = SwitchTransitionTiming[timingKey as keyof typeof SwitchTransitionTiming];
@@ -36,6 +38,7 @@ export default wrap(() => {
 	});
 
 	const page = pageIndex as Color;
+	const transitionKey = page;
 	const ColorComponent = page === Color.blue ? Blue : (page === Color.orange ? Orange : Green);
 
 	return (
@@ -44,12 +47,13 @@ export default wrap(() => {
 			<p>{status}</p>
 			<Container>
 				<SwitchTransition
-					transitionKey={page}
+					transitionKey={transitionKey}
 					timing={timing}
 					onEntered={onEntered}
 					onEntering={onEntering}
 					onExited={onExited}
 					onExiting={onExiting}
+					skipTransitioning={skipTransitioning}
 				>
 					<AbsoluteContainer>
 						<ColorComponent />

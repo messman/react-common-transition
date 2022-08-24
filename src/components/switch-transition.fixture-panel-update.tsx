@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { useTestButtons, wrap } from '@/test/decorate';
-import { createClassSelectors, createTransitionCallback } from './transition';
 import { keyframes, styled } from '@/test/styled';
 import { SwitchTransition } from './switch-transition';
+import { createClassSelectors, createTransitionCallback } from './transition';
 
 const colors = [
 	'lightblue', 'lightcoral', 'lightcyan', 'lightgoldenrodyellow', 'lightgray', 'lightgreen', 'lightpink', 'lightsalmon',
@@ -43,7 +43,7 @@ export default wrap(() => {
 			{buttonsRender}
 			<SwapTopContainer>
 				<SwitchTransition
-					transitionKey={transitionIndex.toString()}
+					transitionKey={transitionIndex}
 					inOnTransitioning={onTransitioning}
 					outOnTransitioning={onTransitioning}
 				>

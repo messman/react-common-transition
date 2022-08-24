@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { useTestButtons, wrap } from '@/test/decorate';
-import { createClassSelectors, createTransitionCallback } from './transition';
 import { keyframes, styled } from '@/test/styled';
-import { SwitchTransition } from './switch-transition';
 import { createMountCounter, useEventStatus } from '@/test/test-utility';
+import { SwitchTransition } from './switch-transition';
+import { createClassSelectors, createTransitionCallback } from './transition';
 
 export default wrap(() => {
 	const [isFirst, setIsFirst] = React.useState(true);
@@ -50,7 +50,7 @@ export default wrap(() => {
 			<p>{status}</p>
 			<SwapTopContainer>
 				<SwitchTransition
-					transitionKey={isFirst ? 'first' : 'second'}
+					transitionKey={isFirst}
 					inOnTransitioning={onTransitioning}
 					outOnTransitioning={onTransitioning}
 					onEntering={onEntering}

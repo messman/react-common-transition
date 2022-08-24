@@ -1,16 +1,27 @@
 import * as React from 'react';
+import { useSelect } from 'react-cosmos/fixture';
 import { useTestButtons, wrap } from '@/test/decorate';
-import { createClassSelectors } from './transition';
 import { styled } from '@/test/styled';
-import { SwitchTransition } from './switch-transition';
+import { enumKeys } from '@/utility';
+import { SwitchTransition, SwitchTransitionTiming } from './switch-transition';
+import { createClassSelectors } from './transition';
+
+const timingsOptions = enumKeys(SwitchTransitionTiming);
 
 export default wrap(() => {
+
+	const [timingKey] = useSelect('Timing', { options: timingsOptions, defaultValue: SwitchTransitionTiming[SwitchTransitionTiming.same] });
+	const timing = SwitchTransitionTiming[timingKey as keyof typeof SwitchTransitionTiming];
+
 	const [index, setIndex] = React.useState(0);
-	const text = texts[index];
+	const text = texts[index] || null;
 
 	const buttonsRender = useTestButtons({
 		'Next': () => {
 			setIndex(p => (p + 1) % texts.length);
+		},
+		'Null': () => {
+			setIndex(-1);
 		}
 	});
 
@@ -18,7 +29,7 @@ export default wrap(() => {
 		<>
 			{buttonsRender}
 			<TextTopContainer>
-				<SwitchTransition transitionKey={text}>
+				<SwitchTransition transitionKey={text} timing={timing}>
 					<TextTransitionContainer>
 						<div>{text}</div>
 					</TextTransitionContainer>
@@ -68,6 +79,6 @@ const TextTransitionContainer = styled.div`
 		opacity: 1;
 	}
 	${TransitionSelectors.transitioning} {
-		transition: opacity 1s;
+		transition: opacity .5s;
 	}
 `;

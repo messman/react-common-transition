@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { useTestButtons, wrap } from '@/test/decorate';
-import { createClassSelectors } from './transition';
 import { styled } from '@/test/styled';
 import { SwitchTransition, SwitchTransitionTiming } from './switch-transition';
+import { createClassSelectors } from './transition';
 
 export default wrap(() => {
 	const [isFirst, setIsFirst] = React.useState(true);
@@ -32,7 +32,7 @@ export default wrap(() => {
 			{buttonsRender}
 			<TopContainer>
 				<SwitchTransition
-					transitionKey={isFirst ? 'first' : 'second'}
+					transitionKey={isFirst}
 					timing={SwitchTransitionTiming.enterFirst}
 				>
 					{render}
