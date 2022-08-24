@@ -17,4 +17,5 @@ export {
 	SwitchTransition,
 	SwitchTransitionProps,
 	SwitchTransitionTiming,
+	SwitchTransitionKey
 } from './components/switch-transition';
