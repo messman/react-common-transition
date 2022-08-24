@@ -1,6 +1,6 @@
 {
 	"name": "@messman/react-common-transition",
-	"version": "7.0.0",
+	"version": "7.1.0",
 	"description": "React tools for managing animations",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
